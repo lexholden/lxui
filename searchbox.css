@@ -1,0 +1,35 @@
+
+.advancedSearchBoxWrapper {margin:10px; -webkit-transition: width 0.5s; /* For Safari 3.1 to 6.0 */ transition: width 0.5s;}
+.advancedSearchBox{display:block;position:relative;border:1px solid #ccc;border-radius:4px;-webkit-border-radius:4px;-moz-border-radius:4px;min-height:40px;padding:0 9px;background-color:#fff;cursor:text;line-height:38px; max-height: 80px; overflow: hidden; margin-bottom: 0;}
+.advancedSearchBox.active{border-color:#66afe9}
+.advancedSearchBox .search-icon{ padding:10px; position: absolute; right: 0px; bottom: 0px; top: 0px;}
+.advancedSearchBox .remove-all-icon{cursor:pointer}
+.advancedSearchBox .search-parameter{display:inline-block;height:24px;margin:5px 7px 0 7px;background-color:#5bc0de;padding:0 5px;border-radius:4px;-webkit-border-radius:4px;-moz-border-radius:4px;line-height:24px;cursor:default;transition:box-shadow 100ms linear; float: left;}
+.advancedSearchBox .search-parameter:hover{box-shadow: 2px 1px 0px indigo;}
+.advancedSearchBox .search-parameter div{float:left;margin:0 2px}
+.advancedSearchBox .search-parameter .remove{color:#fff;margin:4px 0 0 6px;cursor:pointer}
+.advancedSearchBox .search-parameter .key,.advancedSearchBox .search-parameter .value span{color:#fff}
+.advancedSearchBox .search-parameter .value input{height:24px}
+.advancedSearchBox .search-parameter-input{display:inline-block;width:auto;height:38px;border:0;margin:0;padding:10px; float: left;}
+.advancedSearchBox .search-parameter-input:focus{box-shadow:none;outline:0}
+.advancedSearchBox .search-parameter-suggestions{cursor:auto;display:block; margin: 0 0 10px 0; height: 30px; clear: both;}
+.advancedSearchBox .search-parameter-suggestions .title{display:block;float:left;height:25px;margin:7px 7px 0 0;background-color:transparent;color:#888;font-weight:700;padding:0 5px;font-size:14px;line-height:25px}
+.advancedSearchBox .search-parameter-suggestions .search-parameter{cursor:pointer;background-color:#bdbdbd;color:#fff} 
+.scrollableArea { width: 200% !important; }
+.scrollableArea * { position: relative; display: block; float: left; margin: 0; padding: 0; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -o-user-select: none; user-select: none; }
+.scrollWrapper {   position: relative; overflow: hidden; width: 100%; height: 100%; }
+.scrollingHotSpotLeft, .scrollingHotSpotRight { height: calc(100%); width: 35px; position: absolute; top: 0; bottom: 0; background: #999; opacity: 0.8; font-size: 35px; z-index: 200;}
+.scrollingHotSpotRight {right: 0; cursor: e-resize; }
+.scrollingHotSpotLeft {left: 0; cursor: w-resize; }
+.dropdown { padding: 0 10px; font-size: 11pt; border: 1px solid #DDD;}
+
+
+
+
+.lxSearchboxWrapper { margin: 10px; -webkit-transition: width 0.5s; transition: width 0.5s; }
+.lxSearchboxInput, .lxSearchboxData { background: #FFF;  cursor: text; overflow: hidden; display: block; position: relative; border: 1px solid #CCC; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; }
+.lxSearchboxInput { padding: 0 9px; }
+.lxSearchboxInput .search-icon { position: absolute; padding: 10px; right: 0; }
+.lxSearchboxData { display: none; }
+.lxSearchboxData .active { display: block; }
+/*min-height:40px;padding:0 9px;background-color:#fff;cursor:text;line-height:38px; max-height: 80px; overflow: hidden; margin-bottom: 0;*/

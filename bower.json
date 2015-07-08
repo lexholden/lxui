@@ -1,0 +1,26 @@
+{
+  "name": "lxui",
+  "version": "0.0.0",
+  "homepage": "https://github.com/lexholden/lxui",
+  "authors": [
+    "(Alex Holden <a@lexholden.com>)"
+  ],
+  "description": "A collection of UI directives",
+  "main": "lxui.js",
+  "keywords": [
+    "UI",
+    "Angular",
+    "Directive"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-advanced-searchbox": "~1.1.1"
+  }
+}

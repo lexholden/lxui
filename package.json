@@ -1,0 +1,19 @@
+{
+  "name": "lxui",
+  "version": "1.0.0",
+  "description": "A bunch of Angular UI directives",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://lexholden@github.com/lexholden/lxui"
+  },
+  "author": "Alex Holden <a@lexholden.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lexholden/lxui/issues"
+  },
+  "homepage": "https://github.com/lexholden/lxui"
+}
