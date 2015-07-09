@@ -10,104 +10,400 @@
 	<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
 	<script src="bower_components/angular/angular.js"></script>
 	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
-	<script src="searchbox.js"></script>
 	<script>
-		(function() {
 
-			'use strict';
+(function() {
 
-			var lxUi = angular.module('lx-ui', [])
-				.directive('lxTagSearchbox', function() {
-					return {
-						scope: {
-							model: '=ngModel',
-							uiData: '=',
-						},
-						replace: true,
-						restrict: 'E',
-						templateUrl: 'lx-tag-searchbox.html',
-						transclude: true,
-						controller: [
-							'$scope', '$attrs', '$element', '$timeout', '$filter',
-							function ($scope, $attrs, $element, $timeout, $filter) {
+'use strict';
 
-								$scope.placeholder = $attrs.placeholder || 'Search...';
-								$scope.width = $attrs.width || '350px';
-								$scope.inactiveWidth = $attrs.inactiveWidth || $scope.width;
-								$scope.iconClassSearch = $attrs.iconSearch || 'search';
-								$scope.iconClassRemove = $attrs.iconRemove || 'remove';
-								$scope.iconClassTrash = $attrs.iconTrash || 'trash';
+angular.module('lx-ui', [])
+	.directive('nitAdvancedSearchbox', function() {
+		return {
+			restrict: 'E',
+			scope: {
+				model: '=ngModel',
+				parameters: '=',
+				list: '=',
+			},
+			replace: true,
+			templateUrl: 'angular-advanced-searchbox.html',
+			transclude: true,
+			controller: [
+				'$scope', '$attrs', '$element', '$timeout', '$filter',
+				function ($scope, $attrs, $element, $timeout, $filter) {
 
-								$scope.searchParams = []; // Do we want this to be a list or an object?
-								$scope.searchQuery = ''; // Is this necessary? Can it be merged with above?
-								$scope.setSearchFocus = false; // Is this needed?
+					$scope.placeholder = $attrs.placeholder || 'Search...';
+					$scope.width = $attrs.width || '350px';
+					$scope.inactiveWidth = $attrs.inactiveWidth || $scope.width;
+					$scope.iconClassSearch = $attrs.iconSearch || 'search';
+					$scope.iconClassRemove = $attrs.iconRemove || 'remove';
+					$scope.iconClassTrash = $attrs.iconTrash || 'trash';
+					$scope.showRows = $attrs.showRowsDefault || 10;
 
-								$scope.$watch('searchParams', function() { });
-								$scope.$watch('searchQuery', function() { }, true);
+					$scope.searchParams = [];
+					$scope.searchQuery = '';
+					$scope.setSearchFocus = true;
 
-								$scope.enterEditMode = function() {} // Edit a tag
-								$scope.leaveEditMode = function() {} // Stop Editing a tag
-								$scope.typeaheadOnSelect = function() {} // ??
-								$scope.addSearchParam = function() {} // -
-								$scope.removeSearchParam = function() {} // -
-								$scope.removeAllSearchParams = function() {} // clears the search box
-								$scope.editPrevious = function() {} // Edit next param
-								$scope.editNext = function() {} // Edit previous param
-								$scope.keyDown = function(e, searchParamIndex) {} // Handle Keypresses. Can we do with another library?
-								$scope.getInputStyle = function() { // Controls flexible properties for the outer element
-									return {
-										width: $scope.focus || $scope.searchParams.length ? $scope.width : $scope.inactiveWidth
-									}
-								}
-								
-								function restoreModel() {} // ??
-								function updateModel() {} // ??
-								function getCurrentCaretPosition() {} // ??
+					// console.log("Adding Parameters: ")
+					angular.forEach($scope.parameters, function (value, key) {
+						if (value.use === undefined) {value.use = true}
+						// console.log(value);
+					});
+					$scope.currentSearchParam = undefined;
 
-							}
-						]
+					$scope.$watch('searchQuery', function () { updateModel(); });
+					$scope.$watch('searchParams', function () { updateModel(); }, true);
+					$scope.$watch('focus', function (v) { console.log('changing ' + v) }, true);
+
+					$scope.enterEditMode = function(index) {
+						if (index === undefined) { return; }
+						var searchParam = $scope.searchParams[index];
+						searchParam.editMode = true;
 					};
-				})
-				// .directive('lxHorizontalTicker', function() {
-				// 	return {
-				// 		scope: {},
-				// 	}
-				// })
-		
-			lxUi.run(['$templateCache', function($templateCache) {
-				'use strict';
-				$templateCache.put('lx-tag-searchbox.html', 
-					'<div class=lxSearchboxWrapper ng-style=getInputStyle() ng-init="focus = false">' +
-						'<div class=lxSearchboxInput>' +
-							'<span ng-show="searchParams.length < 1 && searchQuery.length === 0" class="search-icon glyphicon" ng-class="\'glyphicon-\' + iconClassSearch"></span>' +
-							'<a ng-show="searchParams.length > 0 || searchQuery.length > 0" ng-click=removeAllSearchParams() role=button class="search-icon">' +
-								'<span class="search glyphicon" ng-class="\'glyphicon-\' + iconClassTrash"></span>' +
-							'</a>' +
-							'<div class=lxSearchParameter ng-repeat="searchParam in SearchParams">' +
-								'<a ng-click=removeSearchParam($index) role=button>' +
-									'<span class="remove glyphicon" ng-class="\'glyphicon-\' + iconClassRemove"></span>' +
-								'</a>' +
-								'<div class=key>{{searchParam.name}}:</div>' +
-								'<div class=value>' +
-									'<span ng-show = !searchParam.editMode ng-click=enterEditMode($index)>{{searchParam.value}}</span>' +
-									'<input ng-show=searchParam.editMode ng-model=searchParam.value placeholder=searchParam.placeholder name=value ng-keydown="keydown($event, $index)" ng-blur=leaveEditMode($index) />' +
-								'</div>' +
-							'</div>' +
-							'<input ng-model=searchQuery name=searchbox class=lxSearchboxInputBox ng-keydown=keydown($event) placeholder={{placeholder}} ng-focus="focus = true" ng-blur="focus = false" />' +
-						'</div>' +
-						'<div class=lxSearchboxData ng-class={active:focus}>' +
-							'Here is a filtered list of results' +
-						'</div>' +
-					'</div>'
-				);
-			}]);
 
-		})();
+					$scope.leaveEditMode = function(index) {
+						if (index === undefined) { return; }
+						var searchParam = $scope.searchParams[index];
+						searchParam.editMode = false;
+						// remove empty search params
+						if (!searchParam.value) { $scope.removeSearchParam(index); }
+					};
 
+					// $scope.typeaheadOnSelect = function (item, model, label) {
+					// 	$scope.addSearchParam(item);
+					// 	$scope.searchQuery = '';
+					// };
+
+					$scope.addSearchParam = function (searchParam, value, enterEditModel) {
+						if (enterEditModel === undefined) {	enterEditModel = true; }
+
+						$scope.searchParams.push({
+								key: searchParam.key,
+								name: searchParam.name,
+								placeholder: searchParam.placeholder,
+								value: value || '',
+								editMode: enterEditModel
+						});
+						if ($scope.currentSearchParam) {
+							console.log("setting undef")
+							$scope.currentSearchParam = undefined;
+						} else {
+							$scope.currentSearchParam = searchParam;
+							console.log("setting searchparam")
+						}
+						searchParam.use = false;
+						//TODO: hide used suggestion
+					};
+
+					$scope.removeSearchParam = function (index) {
+						if (index === undefined) { return; }
+						console.log($scope.searchParams[index])
+						$scope.searchParams[index].use = true;
+						$scope.searchParams.splice(index, 1);
+						//TODO: show hidden/removed suggestion
+					};
+
+					$scope.removeAllSearchParams = function() {
+						$scope.searchParams.length = 0;
+						$scope.searchQuery = '';
+						//TODO: show hidden/removed suggestion
+					};
+
+					$scope.editPrevious = function(currentIndex) {
+						if (currentIndex !== undefined) { $scope.leaveEditMode(currentIndex); }
+						//TODO: check if index == 0 -> what then?
+						if (currentIndex > 0) { $scope.enterEditMode(currentIndex - 1);	} 
+						else if ($scope.searchParams.length > 0) { $scope.enterEditMode($scope.searchParams.length - 1); }
+					};
+
+					$scope.editNext = function(currentIndex) {
+						if (currentIndex === undefined) { return; }
+						$scope.leaveEditMode(currentIndex);
+
+						//TODO: check if index == array length - 1 -> what then?
+						if (currentIndex < $scope.searchParams.length - 1) { $scope.enterEditMode(currentIndex + 1); }
+						else { $scope.setSearchFocus = true; }
+					};
+
+					$scope.keydown = function(e, searchParamIndex) {
+						var handledKeys = [8, 9, 13, 37, 38, 39, 40];
+						if (handledKeys.indexOf(e.which) === -1) { return; }
+
+						var cursorPosition = getCurrentCaretPosition(e.target);
+
+						if (e.which == 8) { // backspace
+							if (cursorPosition === 0) { $scope.editPrevious(searchParamIndex); }
+						} else if (e.which == 9) { // tab
+							if (e.shiftKey) { e.preventDefault(); $scope.editPrevious(searchParamIndex); } 
+							else { e.preventDefault(); $scope.editNext(searchParamIndex); }
+						} else if (e.which == 13) { // enter
+							$scope.editNext(searchParamIndex);
+						} else if (e.which == 37) { // left
+							if (cursorPosition === 0) { $scope.editPrevious(searchParamIndex); }
+						} else if (e.which == 39) { // right
+							if (cursorPosition === e.target.value.length) { $scope.editNext(searchParamIndex); }
+						} else if (e.which == 38) { // up
+							$scope.selectNextPrev(false);
+						} else if (e.which == 40) { // down
+							$scope.selectNextPrev(true);
+						}
+					};
+
+					$scope.getInputStyle = function(height) {
+						var val = {	width: $scope.focus || $scope.searchParams.length > 0 ? $scope.width : $scope.inactiveWidth }
+						// if (height) { val.height = $scope.focus || $scope.searchParams.length > 0 ? '80px' : '40px' }
+						return val;
+					};
+
+					$scope.filterNodes = function(val, index) {
+						console.log(val);
+						return (angular.lowercase(val.name).indexOf(angular.lowercase($scope.AVOSSearchText) || '') !== -1 
+							|| angular.lowercase(val.type).indexOf(angular.lowercase($scope.AVOSSearchText) || '') !== -1
+							|| angular.lowercase(val.avos.nodePathName).indexOf(angular.lowercase($scope.AVOSSearchText) || '') !== -1);
+					}
+
+					$scope.selectNextPrev = function(next) {
+						if (next) {console.log("Selecting Next Item")}
+						else { console.log("Selecting Previous Item") }
+					}
+
+					$scope.deselectAll = function() {
+						angular.forEach($scope.list, function(v) {
+							v.selected = false;
+						});
+					}
+
+					$scope.toggleSearch = function(bool) {
+						// console.log("We clicked out of the thing");
+						$scope.focus = bool;
+					}
+
+					function restoreModel() {
+						angular.forEach($scope.model, function (value, key) {
+							if (key === 'query') { $scope.searchQuery = value; } 
+							else { var searchParam = $filter('filter')($scope.parameters, function (param) { return param.key === key; })[0];
+								if (searchParam !== undefined) { $scope.addSearchParam(searchParam, value, false); }
+							}
+						});
+					}
+
+					if ($scope.model === undefined) { $scope.model = {}; } 
+					else { restoreModel(); }
+
+					var searchThrottleTimer;
+					function updateModel() {
+						if (searchThrottleTimer) { $timeout.cancel(searchThrottleTimer); }
+						searchThrottleTimer = $timeout(function () {
+							$scope.model = {};
+
+							if ($scope.searchQuery.length > 0) { $scope.model.query = $scope.searchQuery; }
+
+							angular.forEach($scope.searchParams, function (param) {
+								if (param.value !== undefined && param.value.length > 0) { $scope.model[param.key] = param.value; }
+							});
+						}, 500);
+					}
+
+					function getCurrentCaretPosition(input) {
+						if (!input) { return 0; }
+
+						// Firefox & co
+						if (typeof input.selectionStart === 'number') {	return input.selectionDirection === 'backward' ? input.selectionStart : input.selectionEnd; } 
+						else if (document.selection) { // IE
+							input.focus();
+							var selection = document.selection.createRange();
+							var selectionLength = document.selection.createRange().text.length;
+							selection.moveStart('character', -input.value.length);
+							return selection.text.length - selectionLength;
+						}
+						return 0;
+					}
+				}
+			]
+		};
+	})
+	.directive('horizontalScroller', function() {
+		return {
+			restrict: 'E',
+			replace: true,
+			transclude: true,
+			scope: {
+				list: '=',
+			},
+			template: '<div ng-transclude></div>',
+			link: function(scope, iElement, attrs) {
+				// console.log(iElement);
+				// $(iElement).css('width', '300px');
+				$(iElement).smoothDivScroll({
+					hotSpotScrolling: true,
+					hotSpotScrollingStep: 2,
+					hotSpotScrollingInterval: 1,
+					visibleHotSpotBackgrounds: "onStart",
+					hotSpotsVisibleTime: 4000,
+					easingAfterHotSpotScrolling: true,
+					easingAfterHotSpotScrollingDistance: 1,
+					mousewheelScrolling: "allDirections",
+					mousewheelScrollingStep: 1,
+					manualContinuousScrolling: true,
+					autoScrollingMode: "always",
+					autoScrollingDirection: "backAndForth",
+					autoScrollingStep: 1,
+					autoScrollingInterval: 50,
+					scrollToEasingFunction: "easeOutCirc"
+				});
+
+				$(iElement).bind("mouseover", function() {
+					$(this).smoothDivScroll("stopAutoScrolling");
+					// console.log("We moved over!");
+				}).bind("mouseout", function() {
+					$(this).smoothDivScroll("startAutoScrolling");
+					// console.log("We moved out!");
+				});
+
+			},
+			controller: [
+				'$scope', '$attrs', '$element', '$timeout', '$filter',
+				function ($scope, $attrs, $element, $timeout, $filter) {
+
+
+
+				}
+			]
+		};
+	})
+	.directive('nitSetFocus', [
+		'$timeout', '$parse',
+		function($timeout, $parse) {
+			return {
+				restrict: 'A',
+				link: function($scope, $element, $attrs) {
+					var model = $parse($attrs.nitSetFocus);
+					$scope.$watch(model, function(value) {
+						if (value === true) {
+								$timeout(function() { $element[0].focus(); });
+						}
+					});
+					$element.bind('blur', function() {
+						$scope.$apply(model.assign($scope, false));
+					});
+				}
+			};
+		}
+	])
+	.directive('nitAutoSizeInput', [
+		function() {
+			return {
+				restrict: 'A',
+				scope: {
+					model: '=ngModel'
+				},
+				link: function($scope, $element, $attrs) {
+					var container = angular.element('<div style="position: fixed; top: -9999px; left: 0px;"></div>');
+					var shadow = angular.element('<span style="white-space:pre;"></span>');
+
+					var maxWidth = $element.css('maxWidth') === 'none' ? $element.parent().innerWidth() : $element.css('maxWidth');
+					$element.css('maxWidth', maxWidth);
+
+					angular.forEach([
+						'fontSize', 'fontFamily', 'fontWeight', 'fontStyle',
+						'letterSpacing', 'textTransform', 'wordSpacing', 'textIndent',
+						'boxSizing', 'borderLeftWidth', 'borderRightWidth', 'borderLeftStyle', 'borderRightStyle',
+						'paddingLeft', 'paddingRight', 'marginLeft', 'marginRight'
+					], function(css) {
+						shadow.css(css, $element.css(css));
+					});
+
+					angular.element('body').append(container.append(shadow));
+
+					function resize() {
+						shadow.text($element.val() || $element.attr('placeholder'));
+						$element.css('width', shadow.outerWidth() + 10);
+					}
+
+					resize();
+
+					if ($scope.model) {	$scope.$watch('model', function() { resize(); }); } 
+					else { $element.on('keypress keyup keydown focus input propertychange change', function() { resize(); }); }
+				}
+			};
+		}
+	])
+	.directive('clickAnywhereButHere', function($document){
+		return {
+			restrict: 'A',
+			link: function(scope, elem, attr, ctrl) {
+				elem.bind('click', function(e) { e.stopPropagation(); });
+				$document.bind('click', function() { scope.$apply(attr.clickAnywhereButHere); })
+			}
+		};
+	})
+	.filter('cut', function() {
+		return function (value, wordwise, max, tail) {
+		if (!value) return '';
+
+		max = parseInt(max, 10);
+		if (!max) return value;
+		if (value.length <= max) return value;
+
+		value = value.substr(0, max);
+		if (wordwise) {
+		    var lastspace = value.lastIndexOf(' ');
+		    if (lastspace != -1) {
+		        value = value.substr(0, lastspace);
+		    }
+		}
+
+		return value + (tail || '…');
+		};
+	});
+})();
+angular.module('lx-ui').run(['$templateCache', function($templateCache) {
+  'use strict';
+
+  $templateCache.put('angular-advanced-searchbox.html',
+	'<div class=lxSearchBoxWrapper ng-style=getInputStyle(true) ng-click=toggleSearch(true) click-anywhere-but-here=toggleSearch(false)>' +
+		'<div class=advancedSearchBox ng-class={active:focus} ng-init="focus = false" >' +
+			'<span ng-show="searchParams.length < 1 && searchQuery.length === 0" class="search-icon glyphicon" ng-class="\'glyphicon-\' + iconClassSearch"></span>' +
+		 	'<a ng-href="" ng-show="searchParams.length > 0 || searchQuery.length > 0" ng-click=removeAllSearchParams() role=button class="search-icon">' +
+		 		'<span class="remove-all-icon glyphicon" ng-class="\'glyphicon-\' + iconClassTrash"></span>' +
+		 	'</a>' +
+		 	'<div class="lxSearchBoxInput">' +
+		 		'<div class=search-parameter ng-repeat="searchParam in searchParams">' +
+					'<a ng-href="" ng-click=removeSearchParam($index) role=button>' +
+						'<span class="remove glyphicon" ng-class="\'glyphicon-\' + iconClassRemove"></span>' +
+					'</a>' +
+					'<div class=key>{{searchParam.name}}:</div>' +
+					'<div class=value>' +
+						'<span ng-show=!searchParam.editMode ng-click=enterEditMode($index)>{{searchParam.value}}</span>' +
+						'<input name=value nit-auto-size-input nit-set-focus=searchParam.editMode ng-keydown="keydown($event, $index)" ng-blur=leaveEditMode($index) ng-show=searchParam.editMode ng-model=searchParam.value placeholder="{{searchParam.placeholder}}">' +
+					'</div>' +
+				'</div>' +
+				'<input name=searchbox class=search-parameter-input nit-set-focus=setSearchFocus ng-keydown=keydown($event) placeholder={{placeholder}} ng-focus="focus = true" ng-model="searchQuery">' +
+		 	'</div>' +
+			'<horizontal-scroller class=search-parameter-suggestions ng-if="parameters && (focus || (currentSearchParam && !currentSearchParam.suggestions)) ">' +
+		 		'<span class=title>Attrs:</span>' +
+		 		'<span class=search-parameter ng-repeat="param in parameters" ng-if="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
+		 	'</horizontal-scroller>' +
+		 	'<horizontal-scroller class=search-parameter-suggestions ng-if="currentSearchParam && currentSearchParam.suggestions">' +
+		 		'<span class=title>Suggestions:</span>' +
+		 		'<span class=search-parameter ng-repeat="suggestion in currentSearchParam.suggestions | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{suggestion}}</span>' +
+		 	'</horizontal-scroller>' +
+		'</div>' +
+		'<div class="lxDropdownTable table table-striped input-group-btn dropdown {{ session.search ? \'open\' : \'\'}}" ng-show="focus || searchParams.length > 0 || searchQuery.length > 0" id="entity-table" ng-transclude>' +
+		'</div>' +
+		// '<b>focus:</b> {{focus}} <br />' +
+		// '<b>currentSearchParam:</b> {{currentSearchParam}} <br />' +
+		// '<b>parameters:</b> {{parameters}} <br />' +
+		// '<b>focus:</b> {{focus}} <br />' +
+	'</div>'
+  );
+
+}]);
 
 	</script>
+	
 	<script>
-		var app = angular.module('myModule', ['ui.bootstrap', 'angular-advanced-searchbox', 'lx-ui']);
+		var app = angular.module('myModule', ['ui.bootstrap', 'lx-ui']);
 		app.controller('DemoController', function($scope) {
 			$scope.availableSearchParams = [
 				{key: 'name', name: 'NAME', placeholder: 'Name...', multi: false},
@@ -143,47 +439,71 @@
 				{name: 'Cucumber', type: 'Vegetable', color: 'Green'},
 				{name: 'Siri', type: 'AI', color: 'Yellow'}
 			]
-			
-			console.table($scope.availableSearchParams);
+			$scope.data2 = [
+				{icon: 'heart-empty', username: 'Emmett', url: 'http://theologize.com/mower/institor?a=subcuticular&b=acleidian#consolidate', email: 'ungenially@denudative.org', id: 'FspcbcOwIxKhNiwx', name: 'Luetta Lacina', dateOfBirth: '2015-09-09', bankBalance: 70957.90, faveColour: '#15954e', job: 'thiophosphite', hometown: 'versemongering', currentTown: 'uncomfortably', gender: 'Male', seeking: 'Male', skills: ['nonhydrogenous', 'shopkeeper']},
+				{icon: 'globe', username: 'fornicator', url: 'https://peacelike.com/faltche/lesbia?a=hexyl&b=gainful#unfowllike', email: 'scotomatical@precedently.org', id: 'gajp2hSGdbMKgblCE', name: 'Ute Poulos', dateOfBirth: '2013-08-08', bankBalance: 55917.70, faveColour: '#6af814', job: 'Othinism', hometown: 'pacificism', currentTown: 'trichoglossine', gender: 'Male', seeking: 'Female', skills: ['unsunken', 'robotics']},
+				{icon: 'paperclip', username: 'Belone81', url: 'http://decoratory.com/tautomeric/martellate?a=paramagnetic&b=goidel#cynoglossum', email: 'ulmous@atheism.edu', id: 'xAMbFZmuC', name: 'Vernia Cregar', dateOfBirth: '2015-12-06', bankBalance: 88991.10, faveColour: '#85f8cb', job: 'stresser', hometown: 'immetrical', currentTown: 'nonrespirable', gender: 'Male', seeking: 'Male', skills: ['jimsedge', 'robotics']},
+				{icon: 'paperclip', username: 'Millingtonia', url: 'http://ensnarement.com/crystallogenic/rummish?a=anthropocentrism&b=edaphon#soleness', email: 'thirdling@stannic.com', id: '8VGsADrd5HiMid', name: 'Janice Deterline', dateOfBirth: '2014-07-09', bankBalance: 370350, faveColour: '#de02a8', job: 'sextuberculate', hometown: 'tovarish', currentTown: 'Absyrtus', gender: 'Female', seeking: 'Male', skills: ['susannite', 'shopkeeper']},
+				{icon: 'paperclip', username: 'antitragic', url: 'http://aldane.com/unready/lopper?a=homosexualist&b=friendlessness#reclaimer', email: 'hyperdiapason@dispraiser.co.uk', id: 'NG3CRoPszXa', name: 'Hugh Pauldo', dateOfBirth: '2012-06-23', bankBalance: 60174.80, faveColour: '#3fdd01', job: 'Monbuttu', hometown: 'damascene', currentTown: 'amygdalotome', gender: 'Male', seeking: 'Male', skills: ['lucidness', 'shopkeeper']},
+				{icon: 'globe', username: 'autoconduction', url: 'https://telugu.com/predestinator/boodie?a=gonorrheal&b=danielle#reactionary', email: 'backblow@unicolored.net', id: '9uH3', name: 'Dorla Silber', dateOfBirth: '2010-02-04', bankBalance: 710860, faveColour: '#fa1b35', job: 'bicuspid', hometown: 'palaeocrystalline', currentTown: 'Idumaean', gender: 'Male', seeking: 'Male', skills: ['ayin']},
+				{icon: 'paperclip', username: 'disendower76', url: 'https://spumescent.com/streamlined/quinamine?a=glomerular&b=sutaio#ralliance', email: 'noncommemoration@ogaire.edu', id: 'UQZ5JiU7GfUkRNdMGpn', name: 'Keith Gerbs', dateOfBirth: '2014-03-17', bankBalance: 4801.20, faveColour: '#553cec', job: 'masticurous', hometown: 'Cheilanthes', currentTown: 'orniscopic', gender: 'Female', seeking: 'Female', skills: ['androdioecious', 'shopkeeper']},
+				{icon: 'wrench', username: 'hexadecene', url: 'http://throddy.com/microtype/semiadnate?a=myroxylon&b=cariniana#pankin', email: 'infraradular@evanish.com', id: 'fPRpqINrVqdSV3', name: 'Ramon Holgerson', dateOfBirth: '2014-03-13', bankBalance: 29466.90, faveColour: '#a215e1', job: 'praisworthiness', hometown: 'Palilicium', currentTown: 'niggardize', gender: 'Male', seeking: 'Female', skills: ['aeration']},
+				{icon: 'globe', username: 'guao', url: 'http://saccharase.com/meliphagidan/knublet?a=pacificity&b=interlaudation#schoolkeeper', email: 'choiceless@uninstructible.org', id: '7bi4MeXIimtS4o', name: 'Vertie Siller', dateOfBirth: '2013-10-15', bankBalance: 31437.40, faveColour: '#1d2c79', job: 'muckluck', hometown: 'leprosarium', currentTown: 'Yonkalla', gender: 'Female', seeking: 'Female', skills: ['phrenoplegy', 'shopkeeper']},
+				{icon: 'globe', username: 'trochee', url: 'http://paleogeography.com/marketman/killingness?a=alstroemeria&b=streptaster#suspensive', email: 'afterchurch@monkishness.net', id: 'eqHGNWL97xfZz1jY4Gn', name: 'Marcelene Bethard', dateOfBirth: '2011-03-20', bankBalance: 69371.80, faveColour: '#71d717', job: 'flimflammery', hometown: 'uncurable', currentTown: 'hydroscopist', gender: 'Male', seeking: 'Female', skills: ['Eskuara', 'shopkeeper']},
+				{icon: 'globe', username: 'unbulletined', url: 'https://nonmember.com/hipponactean/carbonitride?a=carboxydomonas&b=wetted#postrhinal', email: 'patrist@antipruritic.net', id: 'iyNJusVvDIpoiSSh', name: 'Mandi Kosik', dateOfBirth: '2015-08-23', bankBalance: 27636.30, faveColour: '#39912e', job: 'Rhizina', hometown: 'misbelief', currentTown: 'knosped', gender: 'Male', seeking: 'Female', skills: ['genus']},
+				{icon: 'paperclip', username: 'papillar73', url: 'https://bothrenchyma.com/saxtuba/disozonize?a=nitrosylsulphuric&b=organ#heitiki', email: 'acridity@smalls.net', id: 'g7Ezqh4BZTt', name: 'Galina Kuczynski', dateOfBirth: '2011-02-12', bankBalance: 560820, faveColour: '#235da8', job: 'spondylolisthesis', hometown: 'heterotopism', currentTown: 'unsurplice', gender: 'Female', seeking: 'Male', skills: ['reinterest', 'cooking']},
+				{icon: 'heart-empty', username: 'retrocessionist', url: 'http://trifoliolate.com/lactase/countervengeance?a=rationalization&b=robot#hemarthrosis', email: 'icicled@thunderwood.org', id: 'z5ofjW0', name: 'Emerald Soesbe', dateOfBirth: '2012-12-15', bankBalance: 97589.10, faveColour: '#0e6877', job: 'plentify', hometown: 'resupinated', currentTown: 'sporoid', gender: 'Male', seeking: 'Female', skills: ['shopkeeper', 'cooking']},
+				{icon: 'globe', username: 'unbiting', url: 'https://furied.com/evocatory/intercalarily?a=unalphabeted&b=groose#ned', email: 'indignancy@consociate.co.uk', id: '1YdGKsQKG', name: 'Shenita Pedraza', dateOfBirth: '2014-10-10', bankBalance: 21898.40, faveColour: '#dba63d', job: 'scovillite', hometown: 'transmold', currentTown: 'creatic', gender: 'Male', seeking: 'Female', skills: ['prolong', 'cooking']},
+				{icon: 'hdd', username: 'trampishly96', url: 'http://starless.com/ruinousness/perimorphic?a=clyster&b=tangka#hyperpigmented', email: 'whereafter@deciduary.net', id: '8zGRKb3w', name: 'Refugio Fylnn', dateOfBirth: '2014-02-25', bankBalance: 88718.80, faveColour: '#a6db1f', job: 'marantic', hometown: 'subgod', currentTown: 'sull', gender: 'Male', seeking: 'Male', skills: ['smokables', 'cooking']},
+				{icon: 'hdd', username: 'vitrage', url: 'http://talent.com/proappropriation/pyroracemate?a=stond&b=matrimonial#repandly', email: 'uninspired@eyne.com', id: 'BbSODiMB8VRz0Ur3', name: 'Jeanine Gillmer', dateOfBirth: '2011-11-14', bankBalance: 71782.10, faveColour: '#5b43bf', job: 'talocalcaneal', hometown: 'tackproof', currentTown: 'halch', gender: 'Female', seeking: 'Male', skills: ['manorialize']},
+				{icon: 'hdd', username: 'tabanid', url: 'http://naegate.com/trichechine/malik?a=newings&b=forestian#eruptiveness', email: 'pneumological@phlegma.org', id: 'mQLqVLYTTkqH4HzDguDR', name: 'Winnie Springman', dateOfBirth: '2010-10-08', bankBalance: 3382.330, faveColour: '#ffbb69', job: 'superdainty', hometown: 'weaselsnout', currentTown: 'Englishness', gender: 'Male', seeking: 'Male', skills: ['seatless']},
+				{icon: 'hdd', username: 'locksmithery80', url: 'https://dermographic.com/moonward/provincialate?a=nasalis&b=philanthropism#angloid', email: 'rudmasday@perpetualness.com', id: 'pUfozaUsPx', name: 'Kathi Meranda', dateOfBirth: '2014-01-14', bankBalance: 30277.70, faveColour: '#bf1a57', job: 'overcut', hometown: 'peptonaemia', currentTown: 'lactate', gender: 'Male', seeking: 'Male', skills: ['firesafeness']},
+				{icon: 'magnet', username: 'logistic', url: 'https://johnadreams.com/chuckle/thiocarbonyl?a=hiddenmost&b=overdrifted#heterotactous', email: 'prolocutorship@hypoptosis.edu', id: 'ibXHohcF8JB', name: 'Mistie Erp', dateOfBirth: '2011-01-03', bankBalance: 52180.90, faveColour: '#e2f5d4', job: 'brassbounder', hometown: 'bromauric', currentTown: 'embryo', gender: 'Male', seeking: 'Male', skills: ['atherosclerosis', 'pilot']},
+				{icon: 'wrench', username: 'Compsilura', url: 'http://uredostage.com/shatterproof/siderography?a=monometallist&b=myosuture#intercolonization', email: 'piririgua@sociography.org', id: 'TROOu8gShAkULjEdE0', name: 'Sidney Mccleary', dateOfBirth: '2011-04-24', bankBalance: 4111.080, faveColour: '#57769e', job: 'sizar', hometown: 'foremasthand', currentTown: 'gyps', gender: 'Male', seeking: 'Male', skills: ['statuelike', 'programming']},
+				{icon: 'hdd', username: 'reaper', url: 'https://elicitory.com/nonoptical/heterize?a=homotaxic&b=dripper#choriamb', email: 'glueyness@furciform.co.uk', id: '9yR4WHFHE1vB4TA2', name: 'Jessie Ostheimer', dateOfBirth: '2014-04-15', bankBalance: 94659.70, faveColour: '#e16079', job: 'eglandulose', hometown: 'eclectist', currentTown: 'perfusion', gender: 'Male', seeking: 'Both', skills: ['enamorment', 'programming']},
+				{icon: 'heart-empty', username: 'effluent', url: 'https://unthrust.com/venkata/anorgana?a=leviticalness&b=josephine#fluoroscope', email: 'flagelliferous@unflush.co.uk', id: '6FhjDC', name: 'Romana Finto', dateOfBirth: '2015-11-20', bankBalance: 94550.90, faveColour: '#47435d', job: 'mastigophoric', hometown: 'arrhizous', currentTown: 'squirrel', gender: 'Female', seeking: 'Male', skills: ['favillous', 'programming']},
+				{icon: 'magnet', username: 'screwage79', url: 'https://mesoscutellum.com/gametogonium/capkin?a=cynias&b=farnovian#underjungle', email: 'hymnological@ingaevonic.co.uk', id: 'rwYKtSj2DlH', name: 'Byron Cutchall', dateOfBirth: '2014-02-06', bankBalance: 49294.90, faveColour: '#8d0716', job: 'reconduction', hometown: 'unstrategically', currentTown: 'sparrowbill', gender: 'Male', seeking: 'Male', skills: ['preinhabit', 'programming']},
+				{icon: 'magnet', username: 'vitelligerous95', url: 'http://fide.com/herpotrichia/toluylenediamine?a=wrox&b=persulphate#liming', email: 'aucuba@zan.com', id: '8lI', name: 'Tarah Loukas', dateOfBirth: '2013-12-16', bankBalance: 97689.70, faveColour: '#4c4b58', job: 'Ebenales', hometown: 'dielectric', currentTown: 'aquincubital', gender: 'Female', seeking: 'Male', skills: ['sinkstone', 'cooking']},
+				{icon: 'wrench', username: 'cuspidal', url: 'http://overmortgage.com/cawky/europa?a=pes&b=bloodthirsty#unshriven', email: 'maltha@woodhouse.org', id: 'fR36F0CkBc2', name: 'Candace Peer', dateOfBirth: '2015-01-14', bankBalance: 7124.360, faveColour: '#17100f', job: 'scrannel', hometown: 'racemism', currentTown: 'lansfordite', gender: 'Female', seeking: 'Female', skills: ['wekeen', 'cooking']},
+				{icon: 'magnet', username: 'potomato', url: 'https://underpacking.com/malaxage/sidelong?a=hogyard&b=nomenclatorial#nonexcommunicable', email: 'octodianome@neurectasis.co.uk', id: 't7mV', name: 'Carter Torralva', dateOfBirth: '2014-09-10', bankBalance: 46955.40, faveColour: '#a7e7d2', job: 'halichondrine', hometown: 'posthouse', currentTown: 'rhabdomancy', gender: 'Female', seeking: 'Both', skills: ['tacit', 'programming']},
+				{icon: 'magnet', username: 'gyrate', url: 'https://isabelina.com/filch/ionize?a=verbal&b=castilian#path', email: 'pollster@overcheap.org', id: 'xX8DVcgiMsfD', name: 'Adam Houge', dateOfBirth: '2015-01-03', bankBalance: 45744.60, faveColour: '#5a58e6', job: 'imagination', hometown: 'premorality', currentTown: 'snup', gender: 'Male', seeking: 'Female', skills: ['Shtokavski', 'cooking']},
+				{icon: 'magnet', username: 'unexpensively', url: 'https://acetabulous.com/eruptivity/bailage?a=hyomandibular&b=cholesteatomatous#albuminometer', email: 'noncensus@hederaceous.net', id: 'aTMhFq1HHdOhcsy8U7', name: 'Denese Matczak', dateOfBirth: '2012-01-09', bankBalance: 31911.70, faveColour: '#65ef1b', job: 'mesopodiale', hometown: 'piotine', currentTown: 'enhance', gender: 'Male', seeking: 'Female', skills: ['scenographically']},
+			]
+
+			$scope.selectNode = function(node) {
+				console.log(node);
+			}
+
+			// console.table($scope.data2);
 		})
 	</script>
 </head>
 <body ng-app="myModule" ng-controller="DemoController">
-	<nit-advanced-searchbox ng-model="searchParams" parameters="availableSearchParams" list="data" placeholder="StackSearch..."width="450"inactive-width="250">
-		<div ng-repeat="item in data | limitTo: 10" ng-click="selectNode(node, true)">
-			<div>{{item.name}}</div>
-			<div>{{item.type}}</div>
-		</div>
-		<div><div colspan='2' style='text-align: center'>{{ (clusterdata.nodes | filter:filterNodes ).length - 10 }} More...</div></div>
-		<div><div colspan='2' style='text-align: center'>0 / {{clusterdata.nodes.length}} results matching "{{AVOSSearchText}}"</div></div>
-		<div class="row">
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		  <div class="col-md-1">.col-md-1</div>
-		</div>
-		<div class="row">
-		  <div class="col-md-8">.col-md-8</div>
-		  <div class="col-md-4">.col-md-4</div>
-		</div>
-		<div class="row">
-		  <div class="col-md-4">.col-md-4</div>
-		  <div class="col-md-4">.col-md-4</div>
-		  <div class="col-md-4">.col-md-4</div>
-		</div>
-		<div class="row">
-		  <div class="col-md-6">.col-md-6</div>
-		  <div class="col-md-6">.col-md-6</div>
-		</div>
+	<nit-advanced-searchbox ng-model="searchParams" parameters="availableSearchParams" list="data2" placeholder="StackSearch..." width="450" inactive-width="250" style="position: absolute; right: 0;">
+		<table cellpadding="0" cellspacing="0" border="0" class="lxTable table table-bordered table-striped datatable nomargin" >
+			<tbody>
+				<tr ng-repeat="node in data2 | filter:filterNodes | limitTo:10 | orderBy:'username'" ng-click="selectNode(node, true)" ng-mouseover="deselectAll()" ng-class="{selected:node.selected}">
+					<td class="lxIcon">
+						<div class="bubble" ng-style="{background:node.faveColour}">
+							<span class="glyphicon" ng-class="'glyphicon-' + (node.icon || 'question-sign')"></span>
+						</div>
+						<!-- <nodeicon node="node" size="50"></nodeicon> -->
+					</td>
+					<td><span style="font-weight: bold">{{node.name | cut:true:35}}</span> <span style="font-size: 11px;">{{node.username}}</span><br /><span style="font-size: 11px;">&lt;{{node.email}}&gt;</span></td>
+				</tr>
+				<tr ng-if="(data2 | filter:filterNodes ).length > 15" ng-click="console.log('Show more!')"><td colspan='2' class="searchbottom"><a>{{ (data2 | filter:filterNodes ).length - 10 }} More...</a></td></tr>
+				<tr ng-if="(data2 | filter:filterNodes ).length == 0" ng-click="console.log('Show more!')"><td colspan='2' class="searchbottom"><a>0 / {{data2.length}} results matching "{{searchQuery}}"</a></td></tr>
+			</tbody>
+		</table>
 	</nit-advanced-searchbox>
+
+	<div style="padding: 10px 20px; position: absolute; width: 400px; bottom: 80px; left: 0;">
+		<span style="font-weight: bold">parameters:</span> {{parameters}}<br /><br>
+		<span style="font-weight: bold">currentSearchParam:</span> {{currentSearchParam}}<br /><br />
+		<!-- <span style="font-weight: bold">searchQuery:</span> {{searchQuery}}<br /><br /> -->
+		<span style="font-weight: bold">searchParams:</span> {{searchParams}}<br /><br />
+		<span style="font-weight: bold">list:</span> {{data2 | filter:filterNodes | limitTo: 1}}
+	</div>
 
 <!-- 	<horizontal-scroller style="position: absolute; bottom: 10px; width: 500px;">
 		<span class="title">Suggestions:</span>
@@ -195,7 +515,8 @@
 		<span class="search-parameter" ng-repeat="param in availableSearchParams | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{param.name}}</span>
 	</div> -->
 
-<lx-tag-searchbox ui-data="data" style="position: absolute; right: 0; top: 0;"></lx-tag-searchbox>
+<!-- <lx-tag-searchbox ui-data="data" style="position: absolute; left: 500px; top: 0;" width="350" inactive-width="250"></lx-tag-searchbox> -->
+<!-- <lx-tag-searchbox ui-data="data2" style="position: absolute; right: 0; top: 0;"></lx-tag-searchbox> -->
 
 
 </body>
