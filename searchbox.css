@@ -2,7 +2,7 @@
 .advancedSearchBoxWrapper {margin:10px; -webkit-transition: width 0.5s; transition: width 0.5s;}
 .advancedSearchBox { display:block; position:relative; border:1px solid #ccc; border-radius:4px; -webkit-border-radius:4px; -moz-border-radius:4px; min-height:40px;background-color:#fff;cursor:text;line-height:38px; overflow: hidden; margin-bottom: 0;}
 .advancedSearchBox.active{border-color:#66afe9}
-.advancedSearchBox .search-icon { padding:11px; position: absolute; right: 0px; top: 0px;}
+.advancedSearchBox .search-icon { padding: 11px; position: absolute; right: 0px; top: 0px;}
 .advancedSearchBox .remove-all-icon{cursor:pointer}
 .advancedSearchBox .search-parameter {display:inline-block;height:24px;margin:5px 3px 0 3px; background-color:#5bc0de;padding:0 5px;border-radius:4px;-webkit-border-radius:4px;-moz-border-radius:4px;line-height:24px;cursor:default;transition:box-shadow 100ms linear; float: left;}
 .advancedSearchBox .search-parameter:hover{box-shadow: 2px 1px 0px indigo;}
@@ -28,9 +28,9 @@
 .bubble { background: crimson; border-radius: 100px; padding: 8px;}
 .lxSearchboxInput { white-space: nowrap; max-height: 110px; overflow-y: auto; padding: 0 9px; }
 .advancedSearchBox ::-webkit-scrollbar {width: 8px;}
-.advancedSearchBox ::-webkit-scrollbar-track {-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1); border-radius: 10px; background: #EEE;}
-.advancedSearchBox ::-webkit-scrollbar-thumb {border-radius: 10px;-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2); background: #DDD;}
-.lxDropdownTable { display: block; width: 100%; max-height: 611px; overflow-y: auto; overflow-x: hidden; }
+.advancedSearchBox ::-webkit-scrollbar-track {-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1); border-radius: 4px; background: #EEE;}
+.advancedSearchBox ::-webkit-scrollbar-thumb {border-radius: 10px; background: #BBB;}
+.lxDropdownTable { display: block; width: 100%; cursor: pointer; max-height: 611px; overflow-y: auto; overflow-x: hidden; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
 
 
 .lxTable { border-radius: 3px; margin-bottom: 0;}

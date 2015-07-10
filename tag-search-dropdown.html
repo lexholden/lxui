@@ -17,7 +17,7 @@
 'use strict';
 
 angular.module('lx-ui', [])
-	.directive('nitAdvancedSearchbox', function() {
+	.directive('lxTagSearchbox', function() {
 		return {
 			restrict: 'E',
 			scope: {
@@ -28,6 +28,34 @@ angular.module('lx-ui', [])
 			replace: true,
 			templateUrl: 'angular-advanced-searchbox.html',
 			transclude: true,
+			compile: function compile(tElement, tAttrs, transclude) {
+				return {
+					pre: function preLink(scope, iElement, attrs, controller) { console.log(scope) },
+					post: function postLink(scope, iElement, attrs, controller) {
+						console.log(scope.list)
+						// If parameters is undefined, but data is - build a tag list.
+						if (attrs.parameters === undefined && scope.list !== undefined) {
+							// console.log("We have no parameters defined, lets work out our own");
+							var params = [];
+							angular.forEach(scope.list, function (entity, key) {
+								Object.keys(entity).forEach(function(v) {
+									// console.log(v + ": " + entity[v]);
+									var res = params.filter(function (obj) { return obj.key == v })
+									if (res.length) {
+										if (res[0].values.indexOf(entity[v]) == -1) { res[0].values.push(entity[v]); }
+										if (res[0].types.indexOf(typeof entity[v]) == -1) { res[0].values.push(typeof entity[v]); }
+									} else {
+										params.push({ key: v, name: v.toUpperCase(), placeholder: v + '...', values: [entity[v]], types: [typeof entity[v]], use: true });
+									}
+								});
+							});
+							console.log(params);
+							scope.parameters = params;
+							// {key: 'ogdoad', name: 'ogdoad', placeholder: 'ogdoad...', multi: false},
+						}
+					}
+				}
+			},
 			controller: [
 				'$scope', '$attrs', '$element', '$timeout', '$filter',
 				function ($scope, $attrs, $element, $timeout, $filter) {
@@ -38,22 +66,16 @@ angular.module('lx-ui', [])
 					$scope.iconClassSearch = $attrs.iconSearch || 'search';
 					$scope.iconClassRemove = $attrs.iconRemove || 'remove';
 					$scope.iconClassTrash = $attrs.iconTrash || 'trash';
-					$scope.showRows = $attrs.showRowsDefault || 10;
+					// $scope.showRows = $attrs.showRowsDefault || 10; // Is this needed anymore?
 
 					$scope.searchParams = [];
 					$scope.searchQuery = '';
 					$scope.setSearchFocus = true;
-
-					// console.log("Adding Parameters: ")
-					angular.forEach($scope.parameters, function (value, key) {
-						if (value.use === undefined) {value.use = true}
-						// console.log(value);
-					});
 					$scope.currentSearchParam = undefined;
 
 					$scope.$watch('searchQuery', function () { updateModel(); });
 					$scope.$watch('searchParams', function () { updateModel(); }, true);
-					$scope.$watch('focus', function (v) { console.log('changing ' + v) }, true);
+					// $scope.$watch('focus', function (v) { console.log('changing ' + v) }, true);
 
 					$scope.enterEditMode = function(index) {
 						if (index === undefined) { return; }
@@ -68,11 +90,6 @@ angular.module('lx-ui', [])
 						// remove empty search params
 						if (!searchParam.value) { $scope.removeSearchParam(index); }
 					};
-
-					// $scope.typeaheadOnSelect = function (item, model, label) {
-					// 	$scope.addSearchParam(item);
-					// 	$scope.searchQuery = '';
-					// };
 
 					$scope.addSearchParam = function (searchParam, value, enterEditModel) {
 						if (enterEditModel === undefined) {	enterEditModel = true; }
@@ -92,6 +109,7 @@ angular.module('lx-ui', [])
 							console.log("setting searchparam")
 						}
 						searchParam.use = false;
+						$scope.currentSearchParam = undefined;
 						//TODO: hide used suggestion
 					};
 
@@ -178,6 +196,11 @@ angular.module('lx-ui', [])
 						$scope.focus = bool;
 					}
 
+					$scope.showMore = function() {
+						console.log("Showing all!")
+						$scope.showRows += 10;
+					}
+
 					function restoreModel() {
 						angular.forEach($scope.model, function (value, key) {
 							if (key === 'query') { $scope.searchQuery = value; } 
@@ -234,7 +257,7 @@ angular.module('lx-ui', [])
 			link: function(scope, iElement, attrs) {
 				// console.log(iElement);
 				// $(iElement).css('width', '300px');
-				$(iElement).smoothDivScroll({
+				setTimeout($(iElement).smoothDivScroll({
 					hotSpotScrolling: true,
 					hotSpotScrollingStep: 2,
 					hotSpotScrollingInterval: 1,
@@ -250,7 +273,7 @@ angular.module('lx-ui', [])
 					autoScrollingStep: 1,
 					autoScrollingInterval: 50,
 					scrollToEasingFunction: "easeOutCirc"
-				});
+				}), 5000);
 
 				$(iElement).bind("mouseover", function() {
 					$(this).smoothDivScroll("stopAutoScrolling");
@@ -380,21 +403,24 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 				'</div>' +
 				'<input name=searchbox class=search-parameter-input nit-set-focus=setSearchFocus ng-keydown=keydown($event) placeholder={{placeholder}} ng-focus="focus = true" ng-model="searchQuery">' +
 		 	'</div>' +
-			'<horizontal-scroller class=search-parameter-suggestions ng-if="parameters && (focus || (currentSearchParam && !currentSearchParam.suggestions)) ">' +
-		 		'<span class=title>Attrs:</span>' +
+			'<horizontal-scroller class=search-parameter-suggestions ng-if="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
+		 		'<span class=title style="padding-left: 20px; ">Attributes:</span>' +
 		 		'<span class=search-parameter ng-repeat="param in parameters" ng-if="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
 		 	'</horizontal-scroller>' +
-		 	'<horizontal-scroller class=search-parameter-suggestions ng-if="currentSearchParam && currentSearchParam.suggestions">' +
+		 	'<horizontal-scroller class=search-parameter-suggestions ng-if="currentSearchParam && currentSearchParam.values">' +
 		 		'<span class=title>Suggestions:</span>' +
-		 		'<span class=search-parameter ng-repeat="suggestion in currentSearchParam.suggestions | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{suggestion}}</span>' +
+		 		'<span class=search-parameter ng-repeat="suggestion in currentSearchParam.values | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{suggestion}}</span>' +
 		 	'</horizontal-scroller>' +
 		'</div>' +
 		'<div class="lxDropdownTable table table-striped input-group-btn dropdown {{ session.search ? \'open\' : \'\'}}" ng-show="focus || searchParams.length > 0 || searchQuery.length > 0" id="entity-table" ng-transclude>' +
 		'</div>' +
-		// '<b>focus:</b> {{focus}} <br />' +
-		// '<b>currentSearchParam:</b> {{currentSearchParam}} <br />' +
-		// '<b>parameters:</b> {{parameters}} <br />' +
-		// '<b>focus:</b> {{focus}} <br />' +
+		// '<div style="max-height: 300px; width: 800px; right: 0; float: right; overflow: auto;">' +
+		// 	'<b>focus:</b> {{focus}} <br />' +
+		// 	'<b>searchQuery:</b> {{searchQuery}} <br />' +
+		// 	'<b>searchParams:</b> {{searchParams}} <br />' +
+		// 	'<b>currentSearchParam:</b> {{currentSearchParam}} <br />' +
+		// 	'<b>parameters:</b> {{parameters}} <br />' +
+		// '</div>' +
 	'</div>'
   );
 
@@ -474,13 +500,12 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 				console.log(node);
 			}
 
-			// console.table($scope.data2);
 		})
 	</script>
 </head>
 <body ng-app="myModule" ng-controller="DemoController">
-	<nit-advanced-searchbox ng-model="searchParams" parameters="availableSearchParams" list="data2" placeholder="StackSearch..." width="450" inactive-width="250" style="position: absolute; right: 0;">
-		<table cellpadding="0" cellspacing="0" border="0" class="lxTable table table-bordered table-striped datatable nomargin" >
+	<lx-tag-searchbox ng-model="searchParams" list="data2" placeholder="StackSearch..." width="450" inactive-width="250" style="position: absolute; right: 0;">
+		<table cellpadding="0" cellspacing="0" border="0" class="lxTable table table-bordered table-striped datatable nomargin">
 			<tbody>
 				<tr ng-repeat="node in data2 | filter:filterNodes | limitTo:10 | orderBy:'username'" ng-click="selectNode(node, true)" ng-mouseover="deselectAll()" ng-class="{selected:node.selected}">
 					<td class="lxIcon">
@@ -491,18 +516,17 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 					</td>
 					<td><span style="font-weight: bold">{{node.name | cut:true:35}}</span> <span style="font-size: 11px;">{{node.username}}</span><br /><span style="font-size: 11px;">&lt;{{node.email}}&gt;</span></td>
 				</tr>
-				<tr ng-if="(data2 | filter:filterNodes ).length > 15" ng-click="console.log('Show more!')"><td colspan='2' class="searchbottom"><a>{{ (data2 | filter:filterNodes ).length - 10 }} More...</a></td></tr>
+				<tr ng-if="(data2 | filter:filterNodes ).length > 15" ng-click="numRows()"><td colspan='2' class="searchbottom"><a>{{ (data2 | filter:filterNodes ).length - 10 }} More... {{showRows}}</a></td></tr>
 				<tr ng-if="(data2 | filter:filterNodes ).length == 0" ng-click="console.log('Show more!')"><td colspan='2' class="searchbottom"><a>0 / {{data2.length}} results matching "{{searchQuery}}"</a></td></tr>
 			</tbody>
 		</table>
-	</nit-advanced-searchbox>
+	</lx-tag-searchbox>
 
 	<div style="padding: 10px 20px; position: absolute; width: 400px; bottom: 80px; left: 0;">
-		<span style="font-weight: bold">parameters:</span> {{parameters}}<br /><br>
-		<span style="font-weight: bold">currentSearchParam:</span> {{currentSearchParam}}<br /><br />
+		<!-- <span style="font-weight: bold">currentSearchParam:</span> {{currentSearchParam}}<br /><br /> -->
 		<!-- <span style="font-weight: bold">searchQuery:</span> {{searchQuery}}<br /><br /> -->
 		<span style="font-weight: bold">searchParams:</span> {{searchParams}}<br /><br />
-		<span style="font-weight: bold">list:</span> {{data2 | filter:filterNodes | limitTo: 1}}
+		<!-- <span style="font-weight: bold">list:</span> {{data2 | filter:filterNodes | limitTo: 1}} -->
 	</div>
 
 <!-- 	<horizontal-scroller style="position: absolute; bottom: 10px; width: 500px;">
