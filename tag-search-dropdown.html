@@ -62,6 +62,8 @@ angular.module('lx-ui', [])
 
 					$scope.placeholder = $attrs.placeholder || 'Search...';
 					$scope.width = $attrs.width || '350px';
+					$scope.attrString = $attrs.attrString || 'Attributes: ';
+					$scope.suggString = $attrs.suggString || 'Suggestions: ';
 					$scope.inactiveWidth = $attrs.inactiveWidth || $scope.width;
 					$scope.iconClassSearch = $attrs.iconSearch || 'search';
 					$scope.iconClassRemove = $attrs.iconRemove || 'remove';
@@ -404,11 +406,11 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 				'<input name=searchbox class=search-parameter-input nit-set-focus=setSearchFocus ng-keydown=keydown($event) placeholder={{placeholder}} ng-focus="focus = true" ng-model="searchQuery">' +
 		 	'</div>' +
 			'<horizontal-scroller class=search-parameter-suggestions ng-if="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
-		 		'<span class=title style="padding-left: 20px; ">Attributes:</span>' +
+		 		'<span class=title>{{attrString}}</span>' +
 		 		'<span class=search-parameter ng-repeat="param in parameters" ng-if="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
 		 	'</horizontal-scroller>' +
 		 	'<horizontal-scroller class=search-parameter-suggestions ng-if="currentSearchParam && currentSearchParam.values">' +
-		 		'<span class=title>Suggestions:</span>' +
+		 		'<span class=title>{{suggString}}</span>' +
 		 		'<span class=search-parameter ng-repeat="suggestion in currentSearchParam.values | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{suggestion}}</span>' +
 		 	'</horizontal-scroller>' +
 		'</div>' +
