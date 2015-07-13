@@ -77,7 +77,6 @@ angular.module('lx-ui', [])
 
 					$scope.$watch('searchQuery', function () { updateModel(); });
 					$scope.$watch('searchParams', function () { updateModel(); }, true);
-					// $scope.$watch('focus', function (v) { console.log('changing ' + v) }, true);
 
 					$scope.enterEditMode = function(index) {
 						if (index === undefined) { return; }
@@ -89,13 +88,11 @@ angular.module('lx-ui', [])
 						if (index === undefined) { return; }
 						var searchParam = $scope.searchParams[index];
 						searchParam.editMode = false;
-						// remove empty search params
 						if (!searchParam.value) { $scope.removeSearchParam(index); }
 					};
 
 					$scope.addSearchParam = function (searchParam, value, enterEditModel) {
 						if (enterEditModel === undefined) {	enterEditModel = true; }
-
 						$scope.searchParams.push({
 								key: searchParam.key,
 								name: searchParam.name,
@@ -103,30 +100,30 @@ angular.module('lx-ui', [])
 								value: value || '',
 								editMode: enterEditModel
 						});
-						if ($scope.currentSearchParam) {
-							console.log("setting undef")
-							$scope.currentSearchParam = undefined;
-						} else {
-							$scope.currentSearchParam = searchParam;
-							console.log("setting searchparam")
-						}
+						if ($scope.currentSearchParam) { $scope.currentSearchParam = undefined; } 
+						else { $scope.currentSearchParam = searchParam; }
 						searchParam.use = false;
 						$scope.currentSearchParam = undefined;
-						//TODO: hide used suggestion
 					};
 
 					$scope.removeSearchParam = function (index) {
 						if (index === undefined) { return; }
-						console.log($scope.searchParams[index])
-						$scope.searchParams[index].use = true;
+						console.log($scope.parameters[index])
+						$scope.parameters[index].use = true;
+						if ($scope.parameters.some(function(e, i) {
+							if (e.key == $scope.searchParams[index].key) { e.use = true; return true; }
+						})) {}
+						else { console.log("something went wrong, we're trying to find an element that doesn't exist.")}
 						$scope.searchParams.splice(index, 1);
-						//TODO: show hidden/removed suggestion
 					};
 
 					$scope.removeAllSearchParams = function() {
 						$scope.searchParams.length = 0;
 						$scope.searchQuery = '';
-						//TODO: show hidden/removed suggestion
+						$scope.parameters.forEach(function(v) {
+							console.log(v);
+							v.use = true;
+						})
 					};
 
 					$scope.editPrevious = function(currentIndex) {
@@ -389,7 +386,7 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 	'<div class=lxSearchBoxWrapper ng-style=getInputStyle(true) ng-click=toggleSearch(true) click-anywhere-but-here=toggleSearch(false)>' +
 		'<div class=advancedSearchBox ng-class={active:focus} ng-init="focus = false" >' +
 			'<span ng-show="searchParams.length < 1 && searchQuery.length === 0" class="search-icon glyphicon" ng-class="\'glyphicon-\' + iconClassSearch"></span>' +
-		 	'<a ng-href="" ng-show="searchParams.length > 0 || searchQuery.length > 0" ng-click=removeAllSearchParams() role=button class="search-icon">' +
+		 	'<a ng-href="" ng-show="searchParams.length > 0 || searchQuery.length > 0" ng-click=removeAllSearchParams() role=button class="search-icon" title="Clear Search">' +
 		 		'<span class="remove-all-icon glyphicon" ng-class="\'glyphicon-\' + iconClassTrash"></span>' +
 		 	'</a>' +
 		 	'<div class="lxSearchBoxInput">' +
@@ -407,7 +404,7 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 		 	'</div>' +
 			'<horizontal-scroller class=search-parameter-suggestions ng-show="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
 		 		'<span class=title>{{attrString}}</span>' +
-		 		'<span class=search-parameter ng-repeat="param in parameters" ng-if="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
+		 		'<span class=search-parameter ng-repeat="param in parameters" ng-show="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
 		 	'</horizontal-scroller>' +
 		 	'<horizontal-scroller class=search-parameter-suggestions ng-show="currentSearchParam && currentSearchParam.values">' +
 		 		'<span class=title>{{suggString}}</span>' +
