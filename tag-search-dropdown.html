@@ -277,16 +277,14 @@ angular.module('lx-ui', [])
 					autoScrollingMode: "always",
 					autoScrollingDirection: "backAndForth",
 					autoScrollingStep: 1,
-					autoScrollingInterval: 50,
+					autoScrollingInterval: 100,
 					scrollToEasingFunction: "easeOutCirc"
 				}), 5000);
 
 				$(iElement).bind("mouseover", function() {
 					$(this).smoothDivScroll("stopAutoScrolling");
-					// console.log("We moved over!");
 				}).bind("mouseout", function() {
 					$(this).smoothDivScroll("startAutoScrolling");
-					// console.log("We moved out!");
 				});
 
 			},
