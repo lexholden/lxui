@@ -44,8 +44,9 @@ angular.module('lx-ui', [])
 									if (res.length) {
 										if (res[0].values.indexOf(entity[v]) == -1) { res[0].values.push(entity[v]); }
 										if (res[0].types.indexOf(typeof entity[v]) == -1) { res[0].values.push(typeof entity[v]); }
+										res[0].uses++;
 									} else {
-										params.push({ key: v, name: v.toUpperCase(), placeholder: v + '...', values: [entity[v]], types: [typeof entity[v]], use: true });
+										params.push({ key: v, name: v.toUpperCase(), placeholder: v + '...', values: [entity[v]], types: [typeof entity[v]], use: true, uses: 1 });
 									}
 								});
 							});
@@ -410,7 +411,7 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 		 	'</div>' +
 			'<horizontal-scroller class=search-parameter-suggestions ng-show="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
 		 		'<span class=title>{{attrString}}</span>' +
-		 		'<span class=search-parameter ng-repeat="param in parameters" ng-show="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
+		 		'<span class=search-parameter ng-repeat="param in parameters | orderBy:\'uses\'" ng-show="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
 		 	'</horizontal-scroller>' +
 		 	'<horizontal-scroller class=search-parameter-suggestions ng-show="currentSearchParam && currentSearchParam.values">' +
 		 		'<span class=title>{{suggString}}</span>' +
