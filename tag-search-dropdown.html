@@ -108,7 +108,6 @@ angular.module('lx-ui', [])
 
 					$scope.removeSearchParam = function (index) {
 						if (index === undefined) { return; }
-						console.log($scope.parameters[index])
 						$scope.parameters[index].use = true;
 						if ($scope.parameters.some(function(e, i) {
 							if (e.key == $scope.searchParams[index].key) { e.use = true; return true; }
@@ -143,7 +142,7 @@ angular.module('lx-ui', [])
 					};
 
 					$scope.keydown = function(e, searchParamIndex) {
-						var handledKeys = [8, 9, 13, 37, 38, 39, 40];
+						var handledKeys = [8, 9, 13, 37, 38, 39, 40, 186];
 						if (handledKeys.indexOf(e.which) === -1) { return; }
 
 						var cursorPosition = getCurrentCaretPosition(e.target);
@@ -163,6 +162,13 @@ angular.module('lx-ui', [])
 							$scope.selectNextPrev(false);
 						} else if (e.which == 40) { // down
 							$scope.selectNextPrev(true);
+						} else if (e.which == 186 && e.shiftKey) {
+							var potentialKey = $scope.searchQuery.toLowerCase();
+							var matches = $scope.parameters.filter(function(e, i) { return e.key == potentialKey; })
+							if (matches.length == 1) {
+								$scope.addSearchParam(matches[0]);
+								setTimeout(function(){$scope.searchQuery = ""}, 10);
+							}
 						}
 					};
 
