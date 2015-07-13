@@ -30,7 +30,7 @@ angular.module('lx-ui', [])
 			transclude: true,
 			compile: function compile(tElement, tAttrs, transclude) {
 				return {
-					pre: function preLink(scope, iElement, attrs, controller) { console.log(scope) },
+					// pre: function preLink(scope, iElement, attrs, controller) { },
 					post: function postLink(scope, iElement, attrs, controller) {
 						console.log(scope.list)
 						// If parameters is undefined, but data is - build a tag list.
@@ -405,11 +405,11 @@ angular.module('lx-ui').run(['$templateCache', function($templateCache) {
 				'</div>' +
 				'<input name=searchbox class=search-parameter-input nit-set-focus=setSearchFocus ng-keydown=keydown($event) placeholder={{placeholder}} ng-focus="focus = true" ng-model="searchQuery">' +
 		 	'</div>' +
-			'<horizontal-scroller class=search-parameter-suggestions ng-if="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
+			'<horizontal-scroller class=search-parameter-suggestions ng-show="parameters && focus && searchParams.length < parameters.length && !currentSearchParam.values">' +
 		 		'<span class=title>{{attrString}}</span>' +
 		 		'<span class=search-parameter ng-repeat="param in parameters" ng-if="param.use" ng-mousedown=addSearchParam(param)>{{param.name}}</span>' +
 		 	'</horizontal-scroller>' +
-		 	'<horizontal-scroller class=search-parameter-suggestions ng-if="currentSearchParam && currentSearchParam.values">' +
+		 	'<horizontal-scroller class=search-parameter-suggestions ng-show="currentSearchParam && currentSearchParam.values">' +
 		 		'<span class=title>{{suggString}}</span>' +
 		 		'<span class=search-parameter ng-repeat="suggestion in currentSearchParam.values | limitTo:8" ng-mousedown="addSearchParam(currentSearchParam, suggestion, false)">{{suggestion}}</span>' +
 		 	'</horizontal-scroller>' +
