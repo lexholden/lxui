@@ -168,7 +168,7 @@ angular.module('lx-ui', [])
 							var matches = $scope.parameters.filter(function(e, i) { return e.key.toLowerCase() == potentialKey; })
 							if (matches.length == 1) {
 								$scope.addSearchParam(matches[0]);
-								setTimeout(function(){$scope.searchQuery = ""}, 10);
+								setTimeout(function(){$scope.searchQuery = ""}, 1);
 							}
 						}
 					};
